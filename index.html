@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trivia · Comercio Exterior</title>
+  <!-- Font Awesome Icons & Google Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #0b1a2e;
+      /* Imagen de fondo: containers en barco (más visible, con overlay reducido) */
+      background-image: url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      padding: 1rem;
+    }
+
+    /* overlay más claro para que se vea la imagen */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 20, 35, 0.45); /* reducido de 0.70 a 0.45 */
+      backdrop-filter: blur(2px);
+      z-index: 0;
+    }
+
+    .game-wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 760px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 48px;
+      padding: 2rem 2rem 2.5rem;
+      box-shadow: 0 30px 50px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.03);
+      transition: all 0.3s ease;
+    }
+
+    /* cabecera con saludo y puntuación */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      color: #f0f6fc;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .greeting {
+      font-weight: 700;
+      font-size: 1.3rem;
+      letter-spacing: -0.2px;
+      background: linear-gradient(135deg, #ffe99c, #ffd966);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
+    }
+
+    .greeting i {
+      margin-right: 8px;
+      -webkit-text-fill-color: initial;
+      color: #fbbf24;
+    }
+
+    .score-box {
+      background: rgba(0,0,0,0.35);
+      padding: 0.4rem 1.2rem;
+      border-radius: 80px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,215,0,0.12);
+      color: #facc15;
+      box-shadow: 0 0 15px rgba(250, 204, 21, 0.05);
+    }
+
+    .score-box i { margin-right: 6px; color: #fbbf24; }
+
+    /* panel niveles */
+    .level-badge {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.8rem;
+      color: #b6cdff;
+      font-weight: 600;
+      font-size: 0.9rem;
+      letter-spacing: 0.2px;
+      background: rgba(0, 20, 40, 0.4);
+      padding: 0.5rem 1.2rem;
+      border-radius: 60px;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.02);
+    }
+
+    .level-badge span i { margin-right: 8px; color: #7aa9ff; }
+
+    /* tarjeta de pregunta */
+    .question-card {
+      background: rgba(12, 30, 48, 0.55);
+      backdrop-filter: blur(8px);
+      border-radius: 40px;
+      padding: 2rem 1.8rem;
+      margin-bottom: 2rem;
+      border: 1px solid rgba(255,255,255,0.03);
+      box-shadow: inset 0 0 30px rgba(0, 20, 40, 0.3);
+    }
+
+    .question-text {
+      color: #f0f9ff;
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1.3;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .question-text i {
+      color: #facc15;
+      margin-right: 12px;
+      font-size: 1.6rem;
+    }
+
+    /* opciones grid */
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.9rem;
+      margin: 1.5rem 0 1rem;
+    }
+
+    .option-btn {
+      background: rgba(20, 50, 80, 0.45);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 60px;
+      padding: 0.9rem 0.5rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #e2edff;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      letter-spacing: 0.2px;
+    }
+
+    .option-btn i {
+      font-size: 1rem;
+      color: #8bb4ff;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      transform: scale(1.02);
+      background: rgba(40, 90, 150, 0.55);
+      border-color: #facc1550;
+      box-shadow: 0 0 25px #facc1530;
+    }
+
+    .option-btn.correct {
+      background: #1f9d6a !important;
+      border-color: #6fefb0 !important;
+      color: white;
+      box-shadow: 0 0 30px #1f9d6a80;
+    }
+
+    .option-btn.wrong {
+      background: #b53b3b !important;
+      border-color: #ff7a7a !important;
+      color: white;
+      box-shadow: 0 0 30px #b53b3b80;
+    }
+
+    .option-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      filter: grayscale(0.3);
+    }
+
+    /* botón principal */
+    .action-area {
+      display: flex;
+      justify-content: center;
+      margin-top: 1.2rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(145deg, #facc15, #f5b300);
+      border: none;
+      color: #0b1a2e;
+      font-weight: 800;
+      font-size: 1.1rem;
+      padding: 0.9rem 2.5rem;
+      border-radius: 80px;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 10px 30px -8px #facc1560, 0 0 0 1px #facc1580;
+      transition: 0.25s ease;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .btn-primary i { font-size: 1.3rem; }
+    .btn-primary:hover:not(:disabled) {
+      transform: scale(1.04) translateY(-2px);
+      box-shadow: 0 18px 40px -6px #facc1580, 0 0 0 2px #ffd966;
+    }
+    .btn-primary:active { transform: scale(0.96); }
+    .btn-primary:disabled {
+      opacity: 0.4;
+      transform: scale(0.98);
+      pointer-events: none;
+    }
+
+    /* ventanas emergentes (modales) */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+      padding: 1rem;
+    }
+
+    .modal-card {
+      background: rgba(18, 38, 58, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      max-width: 500px;
+      width: 100%;
+      padding: 2.2rem 2rem;
+      border-radius: 48px;
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+      color: #f0f6fc;
+      transition: 0.2s;
+    }
+
+    .modal-card h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.5px;
+      color: #facc15;
+    }
+
+    .modal-card p {
+      color: #cbd5e1;
+      margin-bottom: 1.2rem;
+      font-size: 0.95rem;
+    }
+
+    .modal-card label {
+      display: block;
+      margin-top: 0.8rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #b6cdff;
+    }
+
+    .modal-card input, .modal-card select {
+      width: 100%;
+      padding: 0.7rem 1rem;
+      margin-top: 0.3rem;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 40px;
+      color: white;
+      font-size: 1rem;
+      font-weight: 500;
+      outline: none;
+      transition: 0.2s;
+    }
+
+    .modal-card input:focus, .modal-card select:focus {
+      border-color: #facc15;
+      box-shadow: 0 0 20px #facc1530;
+    }
+
+    .modal-card .btn-primary {
+      width: 100%;
+      justify-content: center;
+      margin-top: 1.5rem;
+    }
+
+    .modal-card .btn-primary:disabled {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .modal-card .result-item {
+      background: rgba(0,0,0,0.2);
+      padding: 0.8rem 1rem;
+      border-radius: 30px;
+      margin: 0.5rem 0;
+      display: flex;
+      justify-content: space-between;
+      border-left: 4px solid #facc15;
+    }
+
+    .modal-card .result-item span:first-child { color: #b6cdff; }
+    .modal-card .result-item span:last-child { font-weight: 700; color: #f0f9ff; }
+
+    .hidden { display: none !important; }
+
+    /* responsive */
+    @media (max-width: 550px) {
+      .game-wrapper { padding: 1.5rem; }
+      .options-grid { grid-template-columns: 1fr; }
+      .question-text { font-size: 1.2rem; }
+      .modal-card { padding: 1.8rem 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="game-wrapper" id="appWrapper">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="greeting"><i class="fas fa-graduation-cap"></i> <span id="greetingName">Comercio Exterior</span></div>
+    <div class="score-box"><i class="fas fa-star"></i> <span id="scoreDisplay">0</span></div>
+  </div>
+  <!-- LEVEL -->
+  <div class="level-badge">
+    <span><i class="fas fa-layer-group"></i> Nivel <span id="levelDisplay">1</span>/25</span>
+    <span id="difficultyBadge"><i class="fas fa-smile"></i> Normal</span>
+  </div>
+
+  <!-- PREGUNTA -->
+  <div class="question-card">
+    <div class="question-text" id="questionText"><i class="fas fa-question-circle"></i> Bienvenido, completa tu registro</div>
+  </div>
+
+  <!-- OPCIONES -->
+  <div class="options-grid" id="optionsContainer"></div>
+
+  <!-- BOTÓN -->
+  <div class="action-area">
+    <button class="btn-primary" id="mainActionBtn"><i class="fas fa-user-plus"></i> Registrar</button>
+  </div>
+
+  <!-- contenedor para mensaje final (no modal) -->
+  <div id="finalMessageContainer" class="hidden" style="margin-top:1.5rem; text-align:center; color:#cbd5e1;"></div>
+</div>
+
+<script>
+  (function() {
+    // ---------- PREGUNTAS (25 niveles, Comercio Exterior Venezuela) ----------
+    const BASE_QUESTIONS = [
+      // Niveles 1-10 (básico - intermedio)
+      { level: 1, difficulty: 'fácil', question: '¿Qué significan las siglas INCOTERMS?', options: ['Términos de comercio internacional', 'Impuestos aduaneros', 'Reglas de origen', 'Costos de flete'], correct: 0 },
+      { level: 2, difficulty: 'fácil', question: 'En Venezuela, el principal puerto para el comercio exterior es:', options: ['La Guaira', 'Puerto Cabello', 'Maracaibo', 'Guanta'], correct: 0 },
+      { level: 3, difficulty: 'fácil', question: '¿Qué documento acredita la nacionalidad de la mercancía?', options: ['Certificado de origen', 'Factura comercial', 'Lista de empaque', 'Conocimiento de embarque'], correct: 0 },
+      { level: 4, difficulty: 'medio', question: '¿Cuál INCOTERM implica que el vendedor asume todos los costos y riesgos hasta la entrega en el lugar convenido?', options: ['FOB', 'CIF', 'DDP', 'EXW'], correct: 2 },
+      { level: 5, difficulty: 'medio', question: 'El documento que certifica la propiedad de la mercancía en el transporte marítimo es:', options: ['Conocimiento de embarque', 'Factura comercial', 'Lista de empaque', 'Certificado de origen'], correct: 0 },
+      { level: 6, difficulty: 'medio', question: '¿Qué Incoterm es el más utilizado en exportaciones venezolanas por vía marítima?', options: ['FOB', 'CIF', 'CFR', 'FCA'], correct: 0 },
+      { level: 7, difficulty: 'medio', question: '¿Qué significa "contenedor TEU"?', options: ['Unidad equivalente a 20 pies', 'Unidad de 40 pies', 'Contenedor refrigerado', 'Contenedor abierto'], correct: 0 },
+      { level: 8, difficulty: 'medio', question: 'En aduanas, el "Valor en Aduana" se basa principalmente en:', options: ['Valor de transacción', 'Valor de seguro', 'Valor de flete', 'Precio de mercado'], correct: 0 },
+      { level: 9, difficulty: 'difícil', question: 'El INCOTERM que obliga al vendedor a contratar el seguro marítimo es:', options: ['CIF', 'FOB', 'EXW', 'DAP'], correct: 0 },
+      { level: 10, difficulty: 'difícil', question: '¿Cuál es el régimen aduanero que permite la importación temporal de mercancías sin pago de aranceles?', options: ['Admisión temporal', 'Depósito aduanero', 'Tránsito aduanero', 'Reexportación'], correct: 0 },
+      // Niveles 11-15 (difícil - experto)
+      { level: 11, difficulty: 'difícil', question: 'En Venezuela, el ente rector de aduanas es:', options: ['SENIAT', 'BANCO CENTRAL', 'MINISTERIO DE COMERCIO', 'SUNDDE'], correct: 0 },
+      { level: 12, difficulty: 'difícil', question: '¿Qué plazo máximo tiene la aduana para realizar el levante de una mercancía?', options: ['5 días hábiles', '10 días hábiles', '15 días hábiles', '30 días hábiles'], correct: 0 },
+      { level: 13, difficulty: 'difícil', question: 'El "DRAWBACK" en comercio exterior es:', options: ['Devolución de aranceles', 'Impuesto a la exportación', 'Recargo arancelario', 'Certificado de origen'], correct: 0 },
+      { level: 14, difficulty: 'experto', question: 'Si una mercancía ingresa a zona primaria y no se presenta la declaración en 48 horas, la aduana:', options: ['Declara el abandono', 'Aplica multa', 'Inicia proceso de decomiso', 'Devuelve la mercancía'], correct: 0 },
+      { level: 15, difficulty: 'experto', question: 'El "Flete marítimo" bajo INCOTERM CIF corre por cuenta del:', options: ['Vendedor', 'Comprador', 'Agente aduanal', 'Naviera'], correct: 0 },
+      // Niveles 16-20 (experto - casos complejos)
+      { level: 16, difficulty: 'experto', question: 'Si la mercancía permanece en depósito aduanero por más de 90 días sin trámite, la aduana:', options: ['Declara abandono legal', 'Remata la mercancía', 'Devuelve al país de origen', 'Aplica multa progresiva'], correct: 0 },
+      { level: 17, difficulty: 'experto', question: 'El "Tránsito aduanero" permite:', options: ['Movilizar mercancía entre aduanas', 'Importar sin aranceles', 'Exportar con beneficios', 'Almacenar mercancía por tiempo indefinido'], correct: 0 },
+      { level: 18, difficulty: 'experto', question: 'En una operación de comercio exterior, el "agente aduanal" es responsable de:', options: ['Declarar la mercancía ante la aduana', 'Pagar los aranceles', 'Transportar la mercancía', 'Verificar la calidad del producto'], correct: 0 },
+      { level: 19, difficulty: 'experto', question: '¿Qué ocurre si el importador no presenta el certificado de origen en el plazo establecido?', options: ['Pierde preferencia arancelaria', 'Se duplica el arancel', 'Se multa al importador', 'Se rechaza la mercancía'], correct: 0 },
+      { level: 20, difficulty: 'experto', question: 'El "Valor FOB" incluye:', options: ['Costo de la mercancía y flete', 'Costo de la mercancía y seguro', 'Solo costo de la mercancía', 'Costo, seguro y flete'], correct: 2 },
+      // Niveles 21-25 (experto - casos de contingencia)
+      { level: 21, difficulty: 'experto', question: 'Si un contenedor llega a puerto con daños visibles, el agente aduanal debe:', options: ['Levantar un acta de avería', 'Rechazar la mercancía', 'Sellarlo y enviarlo', 'Notificar al comprador'], correct: 0 },
+      { level: 22, difficulty: 'experto', question: 'El "Régimen de perfeccionamiento activo" permite:', options: ['Importar insumos con suspensión de aranceles', 'Exportar productos terminados', 'Almacenar mercancía en zona franca', 'Reexportar mercancía dañada'], correct: 0 },
+      { level: 23, difficulty: 'experto', question: 'En una operación de importación, el "pago de aranceles" se realiza en la:', options: ['Aduana de destino', 'Aduana de origen', 'Banco central', 'Ministerio de comercio'], correct: 0 },
+      { level: 24, difficulty: 'experto', question: 'Si la mercancía no llega en el plazo establecido en el INCOTERM, el comprador puede:', options: ['Reclamar daños y perjuicios', 'Cancelar la compra', 'Exigir descuento', 'Devolver la mercancía'], correct: 0 },
+      { level: 25, difficulty: 'experto', question: 'El "Documento Único Administrativo" (DUA) en Venezuela es:', options: ['Declaración de aduana', 'Certificado de origen', 'Factura comercial', 'Lista de empaque'], correct: 0 }
+    ];
+
+    // ---------- STATE ----------
+    let currentLevel = 0;
+    let score = 0;
+    let gameOver = false;
+    let answered = false;
+    let nextLevelUnlocked = false;
+    let playerData = { nombre: '', carrera: '', semestre: 1 };
+    let questions = []; // se llenará según semestre
+
+    // DOM refs
+    const questionText = document.getElementById('questionText');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const mainBtn = document.getElementById('mainActionBtn');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const levelDisplay = document.getElementById('levelDisplay');
+    const difficultyBadge = document.getElementById('difficultyBadge');
+    const finalMsgContainer = document.getElementById('finalMessageContainer');
+    const greetingName = document.getElementById('greetingName');
+    const appWrapper = document.getElementById('appWrapper');
+
+    // ---------- MODALES ----------
+    function createModal(html, onConfirm) {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `<div class="modal-card">${html}</div>`;
+      document.body.appendChild(overlay);
+      const card = overlay.querySelector('.modal-card');
+      const confirmBtn = card.querySelector('.btn-primary');
+      if (confirmBtn) {
+        confirmBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (onConfirm) onConfirm(overlay, card);
+        });
+      }
+      return overlay;
+    }
+
+    // Modal de registro inicial (semestres 1-6)
+    function showRegistrationModal() {
+      const html = `
+        <h2><i class="fas fa-user-graduate"></i> Registro</h2>
+        <p>Ingresa tus datos para comenzar la trivia</p>
+        <label>Nombre completo</label>
+        <input type="text" id="regNombre" placeholder="Ej: María González" value="">
+        <label>Carrera</label>
+        <input type="text" id="regCarrera" placeholder="Comercio Exterior" value="Comercio Exterior">
+        <label>Semestre (1-6)</label>
+        <select id="regSemestre">
+          ${Array.from({length:6}, (_,i) => `<option value="${i+1}">${i+1}° semestre</option>`).join('')}
+        </select>
+        <button class="btn-primary" id="regConfirmBtn"><i class="fas fa-check"></i> Comenzar</button>
+      `;
+      const overlay = createModal(html, (overlay, card) => {
+        const nombre = card.querySelector('#regNombre').value.trim();
+        const carrera = card.querySelector('#regCarrera').value.trim() || 'Comercio Exterior';
+        const semestre = parseInt(card.querySelector('#regSemestre').value, 10);
+        if (!nombre) {
+          alert('Por favor ingresa tu nombre');
+          return;
+        }
+        playerData.nombre = nombre;
+        playerData.carrera = carrera;
+        playerData.semestre = semestre;
+        greetingName.textContent = nombre;
+        overlay.remove();
+        // ajustar dificultad según semestre
+        adjustQuestionsBySemester(semestre);
+        // iniciar juego
+        startGame();
+      });
+    }
+
+    // Modal de resultados finales
+    function showResultsModal(completed) {
+      const { nombre, carrera, semestre } = playerData;
+      const mensaje = (score >= 150) 
+        ? '🎉 ¡Excelente! Has demostrado un conocimiento profundo en Comercio Exterior.' 
+        : '📘 Sigue estudiando, cada paso te acerca a dominar el comercio exterior.';
+      const titulo = (score >= 150) ? '¡Felicidades!' : '¡Sigue adelante!';
+      const colorTitulo = (score >= 150) ? '#facc15' : '#ffb3b3';
+
+      const html = `
+        <h2 style="color:${colorTitulo};">${titulo}</h2>
+        <p>${mensaje}</p>
+        <div class="result-item"><span>👤 Nombre</span><span>${nombre}</span></div>
+        <div class="result-item"><span>📚 Carrera</span><span>${carrera}</span></div>
+        <div class="result-item"><span>📖 Semestre</span><span>${semestre}°</span></div>
+        <div class="result-item"><span>⭐ Puntuación</span><span>${score} pts</span></div>
+        <button class="btn-primary" id="resultRestartBtn"><i class="fas fa-redo-alt"></i> Jugar de nuevo</button>
+      `;
+
+      const overlay = createModal(html, (overlay, card) => {
+        overlay.remove();
+        resetGame();
+      });
+    }
+
+    // ---------- AJUSTE DE PREGUNTAS POR SEMESTRE ----------
+    function adjustQuestionsBySemester(sem) {
+      // clonar base
+      let qs = BASE_QUESTIONS.map(q => ({ ...q }));
+      // según semestre, se filtran o se reordenan (dificultad)
+      // semestre 1-2: solo fácil, 3-4: fácil+medio, 5: medio+difícil, 6: todas (experto)
+      let allowedDifficulties = [];
+      if (sem <= 2) allowedDifficulties = ['fácil'];
+      else if (sem <= 4) allowedDifficulties = ['fácil', 'medio'];
+      else if (sem <= 5) allowedDifficulties = ['medio', 'difícil'];
+      else allowedDifficulties = ['difícil', 'experto'];
+
+      // filtrar
+      let filtered = qs.filter(q => allowedDifficulties.includes(q.difficulty));
+      // si hay menos de 25, se repiten algunas (pero no debería)
+      while (filtered.length < 25) {
+        // tomar de las disponibles
+        const extra = qs.filter(q => !filtered.includes(q));
+        if (extra.length === 0) break;
+        filtered.push(extra[Math.floor(Math.random() * extra.length)]);
+      }
+      // tomar solo 25
+      filtered = filtered.slice(0, 25);
+      // asignar niveles 1-25
+      filtered.forEach((q, idx) => { q.level = idx + 1; });
+      questions = filtered;
+    }
+
+    // ---------- ROTAR OPCIONES (shuffle) ----------
+    function shuffleOptions(q) {
+      const opts = q.options.map((text, idx) => ({ text, isCorrect: idx === q.correct }));
+      // Fisher–Yates
+      for (let i = opts.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [opts[i], opts[j]] = [opts[j], opts[i]];
+      }
+      const newOptions = opts.map(o => o.text);
+      const newCorrect = opts.findIndex(o => o.isCorrect);
+      return { ...q, options: newOptions, correct: newCorrect };
+    }
+
+    // ---------- CARGAR PREGUNTA ----------
+    function loadQuestion(index) {
+      if (index >= questions.length || questions.length === 0) {
+        showResultsModal(true);
+        return;
+      }
+      const q = questions[index];
+      // rotar opciones
+      const shuffled = shuffleOptions(q);
+      // actualizar UI
+      questionText.innerHTML = `<i class="fas fa-question-circle"></i> ${shuffled.question}`;
+      levelDisplay.textContent = shuffled.level;
+      difficultyBadge.innerHTML = `<i class="fas fa-tag"></i> ${shuffled.difficulty.toUpperCase()}`;
+
+      optionsContainer.innerHTML = '';
+      shuffled.options.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerHTML = `<i class="fas fa-circle"></i> ${opt}`;
+        btn.dataset.index = i;
+        btn.addEventListener('click', () => handleOptionClick(i, shuffled.correct, shuffled.level));
+        optionsContainer.appendChild(btn);
+      });
+
+      answered = false;
+      nextLevelUnlocked = false;
+      mainBtn.disabled = true;
+      mainBtn.innerHTML = `<i class="fas fa-hourglass-half"></i> Responde primero`;
+      finalMsgContainer.classList.add('hidden');
+      gameOver = false;
+    }
+
+    // ---------- MANEJAR CLICK OPCIÓN ----------
+    function handleOptionClick(selectedIdx, correctIdx, level) {
+      if (answered || gameOver) return;
+      answered = true;
+      const allBtns = document.querySelectorAll('.option-btn');
+      allBtns.forEach((btn, idx) => {
+        btn.disabled = true;
+        if (idx === correctIdx) btn.classList.add('correct');
+        if (idx === selectedIdx && idx !== correctIdx) btn.classList.add('wrong');
+      });
+
+      if (selectedIdx === correctIdx) {
+        score += 10;
+        scoreDisplay.textContent = score;
+      }
+
+      mainBtn.disabled = false;
+      if (currentLevel < questions.length - 1) {
+        mainBtn.innerHTML = `<i class="fas fa-arrow-right"></i> Siguiente Nivel`;
+      } else {
+        mainBtn.innerHTML = `<i class="fas fa-trophy"></i> Ver resultado final`;
+      }
+      nextLevelUnlocked = true;
+    }
+
+    // ---------- ACCIÓN BOTÓN PRINCIPAL ----------
+    function handleMainAction() {
+      if (gameOver) {
+        resetGame();
+        return;
+      }
+      if (!nextLevelUnlocked) return;
+
+      if (currentLevel < questions.length - 1) {
+        currentLevel++;
+        loadQuestion(currentLevel);
+      } else {
+        // último nivel completado
+        showResultsModal(true);
+        gameOver = true;
+        mainBtn.disabled = true;
+        mainBtn.innerHTML = `<i class="fas fa-check-circle"></i> Finalizado`;
+      }
+    }
+
+    // ---------- REINICIO ----------
+    function resetGame() {
+      currentLevel = 0;
+      score = 0;
+      gameOver = false;
+      answered = false;
+      nextLevelUnlocked = false;
+      scoreDisplay.textContent = '0';
+      finalMsgContainer.classList.add('hidden');
+      // limpiar opciones
+      optionsContainer.innerHTML = '';
+      questionText.innerHTML = `<i class="fas fa-hand-wave"></i> Registra tus datos para comenzar`;
+      mainBtn.innerHTML = `<i class="fas fa-user-plus"></i> Registrar`;
+      mainBtn.disabled = false;
+      mainBtn.onclick = showRegistrationModal;
+      greetingName.textContent = 'Comercio Exterior';
+      levelDisplay.textContent = '1';
+      difficultyBadge.innerHTML = `<i class="fas fa-smile"></i> Normal`;
+    }
+
+    // ---------- INICIO DEL JUEGO (después de registro) ----------
+    function startGame() {
+      currentLevel = 0;
+      score = 0;
+      scoreDisplay.textContent = '0';
+      // cargar primera pregunta
+      if (questions.length === 0) {
+        // fallback
+        questions = BASE_QUESTIONS.map(q => ({ ...q }));
+      }
+      loadQuestion(0);
+      mainBtn.onclick = handleMainAction;
+      mainBtn.disabled = true;
+      mainBtn.innerHTML = `<i class="fas fa-hourglass-half"></i> Responde primero`;
+    }
+
+    // ---------- INICIALIZAR ----------
+    window.addEventListener('DOMContentLoaded', () => {
+      // configurar botón inicial
+      mainBtn.innerHTML = `<i class="fas fa-user-plus"></i> Registrar`;
+      mainBtn.onclick = showRegistrationModal;
+      // ocultar mensaje final
+      finalMsgContainer.classList.add('hidden');
+      questionText.innerHTML = `<i class="fas fa-ship"></i> Bienvenido a la Trivia de Comercio Exterior`;
+    });
+
+  })();
+</script>
+</body>
+</html>
